@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/hud.gd" id="1_script"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/hitmarker.wav" id="2_hitmarker_sfx"]
 
 [node name="GameHUD" type="CanvasLayer"]
 script = ExtResource("1_script")
@@ -147,6 +148,90 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 1, 1, 0.6)
+
+[node name="Hitmarker" type="Control" parent="Crosshair"]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TickNW" type="ColorRect" parent="Crosshair/Hitmarker"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -9.0
+offset_top = -9.0
+offset_right = -4.0
+offset_bottom = -7.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = 0.785398
+mouse_filter = 2
+color = Color(1, 0.2, 0.2, 0.95)
+
+[node name="TickNE" type="ColorRect" parent="Crosshair/Hitmarker"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 4.0
+offset_top = -8.0
+offset_right = 9.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = -0.785398
+mouse_filter = 2
+color = Color(1, 0.2, 0.2, 0.95)
+
+[node name="TickSW" type="ColorRect" parent="Crosshair/Hitmarker"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -8.0
+offset_top = 5.0
+offset_right = -3.0
+offset_bottom = 7.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = -0.785398
+mouse_filter = 2
+color = Color(1, 0.2, 0.2, 0.95)
+
+[node name="TickSE" type="ColorRect" parent="Crosshair/Hitmarker"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 5.0
+offset_top = 4.0
+offset_right = 10.0
+offset_bottom = 6.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = 0.785398
+mouse_filter = 2
+color = Color(1, 0.2, 0.2, 0.95)
+
+[node name="AudioHitmarker" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_hitmarker_sfx")
+volume_db = -4.0
 
 [node name="BottomLeft" type="MarginContainer" parent="."]
 anchors_preset = 2

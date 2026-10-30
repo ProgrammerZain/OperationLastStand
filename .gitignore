@@ -1,3 +1,9 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Build artifacts & standalone binaries (avoid large binary commits to git)
+build/
+*.exe
+*.pck
+

@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/weapons/bullet_tracer.gd" id="1_script"]
+[ext_resource type="Material" path="res://assets/materials/mat_spark.tres" id="2_mat"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_tracer"]
+material = ExtResource("2_mat")
+size = Vector3(0.015, 0.015, 1.0)
+
+[node name="BulletTracer" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.5)
+mesh = SubResource("BoxMesh_tracer")
+

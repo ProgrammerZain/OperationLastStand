@@ -35,6 +35,7 @@ signal player_died()
 @onready var camera: Camera3D = $Head/Camera3D
 @onready var weapon_mount: Node3D = $Head/WeaponMount
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
+@onready var audio_footstep: AudioStreamPlayer3D = $AudioFootstep
 
 # State
 var current_health: float = 100.0
@@ -46,6 +47,7 @@ var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9
 var mouse_captured: bool = false
 var bob_phase: float = 0.0
 var default_camera_y: float = 0.0
+var step_timer: float = 0.0
 
 func _ready() -> void:
 	add_to_group("player")
@@ -88,6 +90,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			deg_to_rad(min_pitch_deg),
 			deg_to_rad(max_pitch_deg)
 		)
+		if current_weapon and current_weapon.has_method("apply_sway"):
+			current_weapon.apply_sway(event.relative)
 		return
 
 	# Mouse capture on window click
@@ -145,9 +149,22 @@ func _process_camera_effects(delta: float, is_sprinting: bool) -> void:
 	var target_fov: float = sprint_fov if (is_sprinting and velocity.length() > walk_speed) else base_fov
 	camera.fov = lerpf(camera.fov, target_fov, fov_change_speed * delta)
 
+	var horizontal_vel: Vector2 = Vector2(velocity.x, velocity.z)
+
+	# Footsteps audio
+	var is_moving_on_floor: bool = is_on_floor() and horizontal_vel.length() > 0.5
+	if is_moving_on_floor:
+		var step_interval: float = 0.32 if is_sprinting else 0.48
+		step_timer += delta * (horizontal_vel.length() / (sprint_speed if is_sprinting else walk_speed))
+		if step_timer >= step_interval:
+			step_timer = 0.0
+			_play_footstep()
+	else:
+		step_timer = 0.25
+
+	# Head Bobbing
 	if bob_enabled:
-		var horizontal_vel: Vector2 = Vector2(velocity.x, velocity.z)
-		if is_on_floor() and horizontal_vel.length() > 0.2:
+		if is_moving_on_floor:
 			var speed_factor: float = 1.3 if is_sprinting else 1.0
 			bob_phase += delta * bob_frequency * speed_factor * (horizontal_vel.length() / walk_speed)
 			camera.position.y = default_camera_y + sin(bob_phase * TAU) * bob_amplitude
@@ -156,6 +173,11 @@ func _process_camera_effects(delta: float, is_sprinting: bool) -> void:
 			bob_phase = 0.0
 			camera.position.y = lerpf(camera.position.y, default_camera_y, 10.0 * delta)
 			camera.position.x = lerpf(camera.position.x, 0.0, 10.0 * delta)
+
+func _play_footstep() -> void:
+	if audio_footstep:
+		audio_footstep.pitch_scale = randf_range(0.88, 1.12)
+		audio_footstep.play()
 
 func take_damage(amount: float) -> void:
 	if not is_alive:

@@ -225,20 +225,43 @@ res://
 
 ---
 
-### Milestone 8: Audio, Polish & Low-End Optimization
+### Milestone 8: Audio, Polish & Low-End Optimization (COMPLETED)
 * **Objective:** Polish player feel (game-feel), integrate audio feedback, and optimize performance for low-end hardware.
 * **Deliverables:**
-  - Audio implementation via `scripts/autoload/sound_manager.gd`:
-    - Procedural/synthesized or lightweight WAV/OGG audio for gunshot, dry-fire, reload, enemy alert, player hurt, victory fanfare, and defeat sting.
-  - Weapon feel: subtle camera recoil punch and recovery, weapon sway when moving.
-  - Lighting optimization:
-    - Shadow distance tuned for low overhead.
-    - Verify 60+ FPS on low-end hardware settings.
-    - Check memory footprint and cleanup of all instanced nodes.
-* **Testing Guide:**
-  - Play through the full mission end-to-end.
-  - Verify sound effects play cleanly without clipping or stacking errors.
-  - Check Godot debugger monitors: zero orphaned nodes, steady 60 FPS, no physics spikes.
+  - Audio implementation:
+    - Procedural & lightweight PCM WAV audio for pistol shots, reloading, hitmarker ticks, footstep variations, enemy alert & hurt vocals, subterranean bunker drone ambience, UI buttons, victory fanfare, and defeat sting.
+  - Weapon feel & FX:
+    - Dynamic weapon sway based on mouse velocity.
+    - Procedural recoil position and rotational punch with smooth exponential recovery.
+    - High-speed visual bullet tracer spawning along hitscan trajectory.
+    - Hit impact decals and spark particle flashes on geometry.
+  - Enemy feedback & animation:
+    - Procedural opposing leg swing walking animation during patrol and chase.
+    - Dynamic torso bobbing synchronized with strides.
+    - Flinch and stagger reaction on bullet impact with smooth recovery.
+    - Menacing visor glow pulsation during alert, chase, and combat states.
+  - Atmosphere & Lighting:
+    - Volumetric depth fog and underground industrial bunker color palette.
+    - Procedural flickering corridor light simulating decaying facility infrastructure.
+    - Looping subterranean background drone (`bunker_ambience.wav`).
+  - UI Polish:
+    - Four-point tactical diagonal hitmarker overlay appearing with high-frequency audio tick upon hostile impact.
+
+---
+
+### Milestone 9: Standalone Windows Desktop Export (COMPLETED)
+* **Objective:** Package the entire project into a self-contained, standalone Windows build ready for distribution and testing outside the Godot editor.
+* **Deliverables:**
+  - `export_presets.cfg`: Configured for "Windows Desktop" using the Compatibility renderer (`gl_compatibility`).
+  - Standalone binary directory `build/OperationLastStand/`:
+    - `OperationLastStand.exe`: Standalone 64-bit Windows executable.
+    - `OperationLastStand.pck`: Packed binary package containing all compiled scripts, scenes, audio samples, shaders, and materials.
+    - `OperationLastStand_console.exe`: Companion diagnostic launcher with console logging enabled.
+    - `README.txt`: Instructions for players and system requirements.
+* **Verification & Testing:**
+  - Standalone package tested directly outside the Godot editor.
+  - Auto-detection of ANGLE Direct3D 11 / OpenGL ES 3.0 Compatibility verified on Intel HD Graphics.
+  - Full game loop verified: Main Menu -> Facility Level -> Combat -> Hitmarkers -> Victory / Game Over -> Retry.
 
 ---
 

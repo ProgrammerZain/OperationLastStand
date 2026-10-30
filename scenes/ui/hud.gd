@@ -7,6 +7,8 @@ extends CanvasLayer
 
 # Center UI references
 @onready var reticle_center: ColorRect = $Crosshair/ReticleCenter
+@onready var hitmarker: Control = $Crosshair/Hitmarker
+@onready var audio_hitmarker: AudioStreamPlayer = $AudioHitmarker
 
 # Bottom-Left Health references
 @onready var health_label: Label = $BottomLeft/HealthBox/HealthLabel
@@ -69,4 +71,13 @@ func trigger_damage_flash() -> void:
 		damage_overlay.modulate = Color(1.0, 1.0, 1.0, 0.5)
 		var tween = create_tween()
 		tween.tween_property(damage_overlay, "modulate:a", 0.0, 0.25)
+
+func show_hitmarker() -> void:
+	if hitmarker:
+		hitmarker.modulate.a = 1.0
+		var tween = create_tween()
+		tween.tween_property(hitmarker, "modulate:a", 0.0, 0.12)
+	if audio_hitmarker:
+		audio_hitmarker.pitch_scale = randf_range(0.95, 1.05)
+		audio_hitmarker.play()
 

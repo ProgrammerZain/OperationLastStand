@@ -27,6 +27,8 @@ enum State {
 @onready var visuals: Node3D = $Visuals
 @onready var torso_mesh: MeshInstance3D = $Visuals/Torso
 @onready var visor_mesh: MeshInstance3D = $Visuals/Head/Visor
+@onready var leg_l: MeshInstance3D = $Visuals/LegL
+@onready var leg_r: MeshInstance3D = $Visuals/LegR
 @onready var muzzle_flash: Node3D = $Visuals/Weapon/MuzzleFlash
 @onready var audio_shoot: AudioStreamPlayer3D = $AudioShoot
 @onready var audio_hurt: AudioStreamPlayer3D = $AudioHurt
@@ -44,6 +46,12 @@ var patrol_wait_timer: float = 0.0
 var path_update_timer: float = 0.0
 var flash_timer: SceneTreeTimer = null
 var default_torso_mat: Material
+var active_visor_mat: StandardMaterial3D = null
+
+# Polish & Animation State
+var walk_time: float = 0.0
+var flinch_rot: Vector3 = Vector3.ZERO
+var flinch_pos: Vector3 = Vector3.ZERO
 
 func _ready() -> void:
 	current_health = max_health
@@ -51,6 +59,11 @@ func _ready() -> void:
 	
 	if torso_mesh:
 		default_torso_mat = torso_mesh.get_active_material(0)
+	if visor_mesh:
+		var base_mat = visor_mesh.get_active_material(0)
+		if base_mat:
+			active_visor_mat = base_mat.duplicate() as StandardMaterial3D
+			visor_mesh.material_override = active_visor_mat
 	if muzzle_flash:
 		muzzle_flash.visible = false
 
@@ -86,6 +99,7 @@ func _physics_process(delta: float) -> void:
 			_process_attack(delta)
 
 	move_and_slide()
+	_animate_visuals(delta)
 
 # ================= STATE: PATROL =================
 func _process_patrol(delta: float) -> void:
@@ -243,6 +257,41 @@ func has_line_of_sight_to(target_node: Node3D) -> bool:
 	# If no world obstacle intersects, LOS is clear
 	return result.is_empty()
 
+func _animate_visuals(delta: float) -> void:
+	# Flinch recovery
+	flinch_rot = flinch_rot.lerp(Vector3.ZERO, 10.0 * delta)
+	flinch_pos = flinch_pos.lerp(Vector3.ZERO, 10.0 * delta)
+	visuals.rotation = flinch_rot
+	visuals.position = flinch_pos
+
+	# Procedural walk animation
+	var horizontal_speed: float = Vector2(velocity.x, velocity.z).length()
+	if horizontal_speed > 0.1 and is_on_floor():
+		var cycle_speed: float = 10.0 if current_state == State.CHASE else 6.0
+		walk_time += delta * cycle_speed
+		if leg_l:
+			leg_l.rotation.x = sin(walk_time) * deg_to_rad(28.0)
+		if leg_r:
+			leg_r.rotation.x = -sin(walk_time) * deg_to_rad(28.0)
+		if torso_mesh:
+			torso_mesh.position.y = 1.05 + abs(sin(walk_time)) * 0.03
+	else:
+		walk_time = 0.0
+		if leg_l:
+			leg_l.rotation.x = lerpf(leg_l.rotation.x, 0.0, 10.0 * delta)
+		if leg_r:
+			leg_r.rotation.x = lerpf(leg_r.rotation.x, 0.0, 10.0 * delta)
+		if torso_mesh:
+			torso_mesh.position.y = lerpf(torso_mesh.position.y, 1.05, 10.0 * delta)
+
+	# Visor emission pulse during alert states
+	if visor_mesh and active_visor_mat:
+		if current_state == State.CHASE or current_state == State.ATTACK:
+			var pulse: float = 1.2 + 0.8 * sin(Time.get_ticks_msec() * 0.009)
+			active_visor_mat.emission_energy_multiplier = pulse
+		else:
+			active_visor_mat.emission_energy_multiplier = 0.8
+
 func take_damage(amount: float, _hit_pos: Vector3 = Vector3.ZERO, _hit_normal: Vector3 = Vector3.UP) -> void:
 	if current_state == State.DEAD:
 		return
@@ -259,8 +308,14 @@ func take_damage(amount: float, _hit_pos: Vector3 = Vector3.ZERO, _hit_normal: V
 		audio_hurt.pitch_scale = randf_range(0.95, 1.1)
 		audio_hurt.play()
 
-	# Visual damage flash
+	# Visual damage flash & flinch stagger
 	_flash_red()
+	flinch_rot = Vector3(
+		randf_range(-0.20, -0.08),
+		randf_range(-0.12, 0.12),
+		randf_range(-0.16, 0.16)
+	)
+	flinch_pos = Vector3(0.0, 0.0, 0.08)
 
 	if current_health <= 0.0:
 		die()
@@ -293,8 +348,8 @@ func die() -> void:
 
 	# Collapse backward onto floor
 	if visuals:
-		visuals.rotation.x = -deg_to_rad(85.0)
-		visuals.position.y = -0.7
+		visuals.rotation = Vector3(-deg_to_rad(85.0), 0.0, 0.0)
+		visuals.position = Vector3(0.0, -0.7, 0.0)
 
 	print("[ENEMY KILLED] Enemy eliminated!")
 	enemy_died.emit(self)

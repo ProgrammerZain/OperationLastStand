@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3]
+[gd_scene load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/facility_level.gd" id="1_script"]
 [ext_resource type="Material" path="res://assets/materials/mat_floor_concrete.tres" id="2_floor"]
@@ -18,6 +18,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="16_pause"]
 [ext_resource type="PackedScene" path="res://scenes/ui/victory_screen.tscn" id="17_victory"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_over_screen.tscn" id="18_game_over"]
+[ext_resource type="AudioStream" path="res://assets/audio/music/bunker_ambience.wav" id="19_ambience"]
 
 [sub_resource type="Environment" id="Environment_main"]
 background_mode = 1
@@ -35,7 +36,7 @@ fog_sky_affect = 0.0
 cell_size = 0.25
 cell_height = 0.25
 agent_radius = 0.5
-agent_height = 1.8
+agent_height = 2.0
 agent_max_climb = 0.5
 agent_max_slope = 45.0
 geometry_parsed_geometry_type = 1
@@ -877,3 +878,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 18)
 [node name="VictoryScreen" parent="UI" instance=ExtResource("17_victory")]
 
 [node name="GameOverScreen" parent="UI" instance=ExtResource("18_game_over")]
+
+[node name="AmbientAudio" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("19_ambience")
+autoplay = true
+volume_db = -8.0
+bus = &"Master"
