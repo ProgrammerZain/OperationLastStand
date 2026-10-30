@@ -9,7 +9,9 @@ height = 1.8
 [node name="Player" type="CharacterBody3D"]
 collision_layer = 2
 collision_mask = 1
-floor_snap_length = 0.2
+floor_stop_on_slope = true
+floor_max_angle = 0.785398
+floor_snap_length = 0.3
 script = ExtResource("1_script")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
@@ -27,7 +29,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, -0.22, -0.45)
 
 [node name="CrosshairUI" type="CanvasLayer" parent="."]
 
-[node name="CenterDot" type="ColorRect" parent="CrosshairUI"]
+[node name="ReticleCenter" type="ColorRect" parent="CrosshairUI"]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -40,5 +42,64 @@ offset_bottom = 2.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(1, 1, 1, 0.75)
+color = Color(1, 1, 1, 0.85)
 
+[node name="ReticleLeft" type="ColorRect" parent="CrosshairUI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -10.0
+offset_top = -1.0
+offset_right = -5.0
+offset_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0.6)
+
+[node name="ReticleRight" type="ColorRect" parent="CrosshairUI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 5.0
+offset_top = -1.0
+offset_right = 10.0
+offset_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0.6)
+
+[node name="ReticleTop" type="ColorRect" parent="CrosshairUI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -1.0
+offset_top = -10.0
+offset_right = 1.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0.6)
+
+[node name="ReticleBottom" type="ColorRect" parent="CrosshairUI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -1.0
+offset_top = 5.0
+offset_right = 1.0
+offset_bottom = 10.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0.6)
