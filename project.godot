@@ -11,9 +11,13 @@ config_version=5
 [application]
 
 config/name="OperationLastStand"
-run/main_scene="res://scenes/levels/facility_level.tscn"
+run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
+
+[autoload]
+
+GameManager="*res://scripts/autoload/game_manager.gd"
 
 [display]
 

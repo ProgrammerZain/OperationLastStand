@@ -36,16 +36,11 @@ signal player_died()
 @onready var weapon_mount: Node3D = $Head/WeaponMount
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 
-# HUD references
-@onready var ammo_label: Label = $CrosshairUI/AmmoContainer/AmmoLabel
-@onready var status_label: Label = $CrosshairUI/AmmoContainer/StatusLabel
-@onready var health_label: Label = $CrosshairUI/HealthContainer/HealthLabel
-@onready var damage_overlay: ColorRect = $CrosshairUI/DamageOverlay
-
 # State
 var current_health: float = 100.0
 var is_alive: bool = true
 var current_weapon: WeaponBase = null
+var hud: GameHUD = null
 
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9.8)
 var mouse_captured: bool = false
@@ -58,7 +53,10 @@ func _ready() -> void:
 	default_camera_y = camera.position.y
 	capture_mouse()
 	
-	_update_health_ui()
+	# Cache HUD reference
+	hud = get_tree().get_first_node_in_group("hud") as GameHUD
+	if hud:
+		hud.update_health(current_health, max_health)
 	
 	# Detect and initialize equipped weapon
 	if weapon_mount and weapon_mount.get_child_count() > 0:
@@ -78,7 +76,7 @@ func equip_weapon(weapon: WeaponBase) -> void:
 		_on_ammo_changed(current_weapon.current_ammo, current_weapon.reserve_ammo)
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not is_alive:
+	if not is_alive or GameManager.current_state != GameManager.GameState.PLAYING:
 		return
 
 	# Mouse look
@@ -101,11 +99,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			current_weapon.fire()
 			return
 
-	# Mouse release on Escape / ui_cancel
-	if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and event.physical_keycode == KEY_ESCAPE):
-		release_mouse()
-		return
-
 	# Weapon controls (only when mouse is captured)
 	if mouse_captured and current_weapon:
 		if event.is_action_pressed("fire"):
@@ -114,7 +107,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			current_weapon.reload()
 
 func _physics_process(delta: float) -> void:
-	if not is_alive:
+	if not is_alive or GameManager.current_state != GameManager.GameState.PLAYING:
 		return
 
 	# Gravity & terminal velocity
@@ -149,11 +142,9 @@ func _physics_process(delta: float) -> void:
 	_process_camera_effects(delta, is_sprinting)
 
 func _process_camera_effects(delta: float, is_sprinting: bool) -> void:
-	# 1. Dynamic FOV
 	var target_fov: float = sprint_fov if (is_sprinting and velocity.length() > walk_speed) else base_fov
 	camera.fov = lerpf(camera.fov, target_fov, fov_change_speed * delta)
 
-	# 2. Head Bobbing
 	if bob_enabled:
 		var horizontal_vel: Vector2 = Vector2(velocity.x, velocity.z)
 		if is_on_floor() and horizontal_vel.length() > 0.2:
@@ -173,29 +164,21 @@ func take_damage(amount: float) -> void:
 	current_health = maxf(0.0, current_health - amount)
 	print("[PLAYER DAMAGED] Took %s damage! HP: %s/%s" % [amount, current_health, max_health])
 	emit_signal("health_changed", current_health, max_health)
-	_update_health_ui()
-
-	# Red screen flash indicator
-	if damage_overlay:
-		damage_overlay.modulate = Color(1.0, 1.0, 1.0, 0.45)
-		var tween: Tween = create_tween()
-		tween.tween_property(damage_overlay, "modulate:a", 0.0, 0.25)
+	
+	if not hud:
+		hud = get_tree().get_first_node_in_group("hud") as GameHUD
+	if hud:
+		hud.update_health(current_health, max_health)
+		hud.trigger_damage_flash()
 
 	if current_health <= 0.0:
 		_die()
-
-func _update_health_ui() -> void:
-	if health_label:
-		health_label.text = "+ %d HP" % int(current_health)
-		if current_health <= 25.0:
-			health_label.modulate = Color(1.0, 0.25, 0.25)
-		else:
-			health_label.modulate = Color(0.95, 0.95, 0.95)
 
 func _die() -> void:
 	is_alive = false
 	print("[PLAYER K.I.A.] Player eliminated.")
 	emit_signal("player_died")
+	GameManager.on_player_died()
 
 func capture_mouse() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -207,23 +190,27 @@ func release_mouse() -> void:
 
 # UI / Weapon Callbacks
 func _on_ammo_changed(current: int, reserve: int) -> void:
-	if ammo_label:
-		ammo_label.text = "%02d / %02d" % [current, reserve]
-	if status_label and not (current_weapon and current_weapon.is_reloading):
-		if current == 0:
-			status_label.text = "PRESS [R] TO RELOAD"
-			status_label.modulate = Color(1.0, 0.35, 0.35)
-		else:
-			status_label.text = ""
+	if not hud:
+		hud = get_tree().get_first_node_in_group("hud") as GameHUD
+	if hud:
+		hud.update_ammo(current, reserve)
+		if not (current_weapon and current_weapon.is_reloading):
+			if current == 0:
+				hud.set_reload_status("PRESS [R] TO RELOAD", Color(1.0, 0.35, 0.35))
+			else:
+				hud.set_reload_status("")
 
 func _on_reload_started(_duration: float) -> void:
-	if status_label:
-		status_label.text = "RELOADING..."
-		status_label.modulate = Color(1.0, 0.85, 0.2)
+	if not hud:
+		hud = get_tree().get_first_node_in_group("hud") as GameHUD
+	if hud:
+		hud.set_reload_status("RELOADING...", Color(1.0, 0.85, 0.2))
 
 func _on_reload_finished() -> void:
-	if status_label:
-		status_label.text = ""
+	if not hud:
+		hud = get_tree().get_first_node_in_group("hud") as GameHUD
+	if hud:
+		hud.set_reload_status("")
 
 # Input helpers
 func _get_input_vector() -> Vector2:

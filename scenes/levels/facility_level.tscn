@@ -14,6 +14,10 @@
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="12_player"]
 [ext_resource type="PackedScene" path="res://scenes/levels/props/shooting_target.tscn" id="13_target"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/enemy_soldier.tscn" id="14_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="15_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="16_pause"]
+[ext_resource type="PackedScene" path="res://scenes/ui/victory_screen.tscn" id="17_victory"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_over_screen.tscn" id="18_game_over"]
 
 [sub_resource type="Environment" id="Environment_main"]
 background_mode = 1
@@ -863,3 +867,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 18)
 
 [node name="Player" parent="." instance=ExtResource("12_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 18)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="GameHUD" parent="UI" groups=["hud"] instance=ExtResource("15_hud")]
+
+[node name="PauseMenu" parent="UI" instance=ExtResource("16_pause")]
+
+[node name="VictoryScreen" parent="UI" instance=ExtResource("17_victory")]
+
+[node name="GameOverScreen" parent="UI" instance=ExtResource("18_game_over")]
