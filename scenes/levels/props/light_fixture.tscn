@@ -1,0 +1,30 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/mat_wall_accent.tres" id="1_casing"]
+[ext_resource type="Material" path="res://assets/materials/mat_lamp_emissive.tres" id="2_lamp"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_housing"]
+material = ExtResource("1_casing")
+size = Vector3(1.4, 0.15, 0.35)
+
+[sub_resource type="BoxMesh" id="BoxMesh_bulb"]
+material = ExtResource("2_lamp")
+size = Vector3(1.2, 0.05, 0.2)
+
+[node name="LightFixture" type="Node3D"]
+
+[node name="HousingMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.075, 0)
+mesh = SubResource("BoxMesh_housing")
+
+[node name="BulbMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.16, 0)
+mesh = SubResource("BoxMesh_bulb")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+light_color = Color(0.96, 0.94, 0.85, 1)
+light_energy = 1.4
+omni_range = 10.0
+omni_attenuation = 1.2
+

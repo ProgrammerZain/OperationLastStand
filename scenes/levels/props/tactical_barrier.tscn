@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/materials/mat_barrier_concrete.tres" id="1_mat"]
+[ext_resource type="Material" path="res://assets/materials/mat_hazard_stripe.tres" id="2_trim"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_barrier"]
+material = ExtResource("1_mat")
+size = Vector3(2.6, 1.1, 0.45)
+
+[sub_resource type="BoxMesh" id="BoxMesh_trim"]
+material = ExtResource("2_trim")
+size = Vector3(2.62, 0.08, 0.47)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_barrier"]
+size = Vector3(2.6, 1.1, 0.45)
+
+[node name="TacticalBarrier" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+mesh = SubResource("BoxMesh_barrier")
+
+[node name="TrimMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.12, 0)
+mesh = SubResource("BoxMesh_trim")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+shape = SubResource("BoxShape3D_barrier")
+
