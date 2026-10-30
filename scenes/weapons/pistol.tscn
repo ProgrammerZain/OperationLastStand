@@ -1,0 +1,83 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/weapons/pistol.gd" id="1_script"]
+[ext_resource type="Material" path="res://assets/materials/mat_weapon_gunmetal.tres" id="2_metal"]
+[ext_resource type="Material" path="res://assets/materials/mat_weapon_grip.tres" id="3_grip"]
+[ext_resource type="Material" path="res://assets/materials/mat_muzzle_flash.tres" id="4_flash"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/pistol_shot.wav" id="5_shot_audio"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/pistol_reload.wav" id="6_reload_audio"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_slide"]
+material = ExtResource("2_metal")
+size = Vector3(0.045, 0.05, 0.22)
+
+[sub_resource type="BoxMesh" id="BoxMesh_grip"]
+material = ExtResource("3_grip")
+size = Vector3(0.038, 0.12, 0.055)
+
+[sub_resource type="BoxMesh" id="BoxMesh_guard"]
+material = ExtResource("2_metal")
+size = Vector3(0.02, 0.035, 0.045)
+
+[sub_resource type="BoxMesh" id="BoxMesh_front_sight"]
+material = ExtResource("2_metal")
+size = Vector3(0.008, 0.012, 0.015)
+
+[sub_resource type="BoxMesh" id="BoxMesh_rear_sight"]
+material = ExtResource("2_metal")
+size = Vector3(0.02, 0.012, 0.012)
+
+[sub_resource type="BoxMesh" id="BoxMesh_flash_star"]
+material = ExtResource("4_flash")
+size = Vector3(0.09, 0.09, 0.005)
+
+[node name="Pistol" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Model" type="Node3D" parent="."]
+
+[node name="Slide" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, -0.06)
+mesh = SubResource("BoxMesh_slide")
+
+[node name="Grip" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, -0.045, -0.01)
+mesh = SubResource("BoxMesh_grip")
+
+[node name="TriggerGuard" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.015, -0.055)
+mesh = SubResource("BoxMesh_guard")
+
+[node name="FrontSight" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.055, -0.155)
+mesh = SubResource("BoxMesh_front_sight")
+
+[node name="RearSight" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.055, 0.035)
+mesh = SubResource("BoxMesh_rear_sight")
+
+[node name="MuzzleFlash" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, -0.19)
+visible = false
+
+[node name="FlashStar1" type="MeshInstance3D" parent="MuzzleFlash"]
+mesh = SubResource("BoxMesh_flash_star")
+
+[node name="FlashStar2" type="MeshInstance3D" parent="MuzzleFlash"]
+transform = Transform3D(0.707107, -0.707107, 0, 0.707107, 0.707107, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("BoxMesh_flash_star")
+
+[node name="MuzzleLight" type="OmniLight3D" parent="MuzzleFlash"]
+light_color = Color(1, 0.85, 0.35, 1)
+light_energy = 3.5
+omni_range = 5.0
+omni_attenuation = 1.5
+
+[node name="AudioFire" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("5_shot_audio")
+max_distance = 40.0
+
+[node name="AudioReload" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("6_reload_audio")
+max_distance = 25.0
+

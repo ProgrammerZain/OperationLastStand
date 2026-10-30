@@ -1,0 +1,64 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/props/shooting_target.gd" id="1_script"]
+[ext_resource type="Material" path="res://assets/materials/mat_target_stand.tres" id="2_stand"]
+[ext_resource type="Material" path="res://assets/materials/mat_target_board.tres" id="3_board"]
+[ext_resource type="Material" path="res://assets/materials/mat_target_bullseye.tres" id="4_bullseye"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/target_hit.wav" id="5_hit_audio"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_target"]
+size = Vector3(0.7, 1.6, 0.3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_base"]
+material = ExtResource("2_stand")
+size = Vector3(0.7, 0.08, 0.7)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_pole"]
+material = ExtResource("2_stand")
+top_radius = 0.035
+bottom_radius = 0.035
+height = 1.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_board"]
+material = ExtResource("3_board")
+size = Vector3(0.6, 0.75, 0.04)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_face"]
+material = ExtResource("4_bullseye")
+top_radius = 0.22
+bottom_radius = 0.22
+height = 0.01
+
+[node name="ShootingTarget" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 0
+script = ExtResource("1_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("BoxShape3D_target")
+
+[node name="StandBase" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, 0)
+mesh = SubResource("BoxMesh_base")
+
+[node name="StandPole" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("CylinderMesh_pole")
+
+[node name="Pivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0)
+
+[node name="TargetBoard" type="MeshInstance3D" parent="Pivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+mesh = SubResource("BoxMesh_board")
+
+[node name="TargetFace" type="MeshInstance3D" parent="Pivot"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0.35, 0.025)
+mesh = SubResource("CylinderMesh_face")
+
+[node name="HitAudio" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+stream = ExtResource("5_hit_audio")
+max_distance = 35.0
+

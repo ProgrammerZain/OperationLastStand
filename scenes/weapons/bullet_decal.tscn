@@ -1,0 +1,36 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/weapons/bullet_decal.gd" id="1_script"]
+[ext_resource type="Material" path="res://assets/materials/mat_spark.tres" id="2_spark_mat"]
+[ext_resource type="Material" path="res://assets/materials/mat_wall_accent.tres" id="3_mark_mat"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_mark"]
+material = ExtResource("3_mark_mat")
+size = Vector3(0.06, 0.06, 0.01)
+
+[sub_resource type="BoxMesh" id="BoxMesh_spark"]
+material = ExtResource("2_spark_mat")
+size = Vector3(0.02, 0.02, 0.02)
+
+[node name="BulletDecal" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="ImpactMark" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.005)
+mesh = SubResource("BoxMesh_mark")
+
+[node name="Sparks" type="CPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.02)
+emitting = false
+amount = 8
+lifetime = 0.25
+one_shot = true
+explosiveness = 1.0
+mesh = SubResource("BoxMesh_spark")
+direction = Vector3(0, 0, 1)
+spread = 65.0
+initial_velocity_min = 2.0
+initial_velocity_max = 4.5
+scale_amount_min = 0.5
+scale_amount_max = 1.2
+

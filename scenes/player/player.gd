@@ -27,7 +27,15 @@ extends CharacterBody3D
 # Node references
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
+@onready var weapon_mount: Node3D = $Head/WeaponMount
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
+
+# HUD references
+@onready var ammo_label: Label = $CrosshairUI/AmmoContainer/AmmoLabel
+@onready var status_label: Label = $CrosshairUI/AmmoContainer/StatusLabel
+
+# Weapon state
+var current_weapon: WeaponBase = null
 
 # Internal state
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9.8)
@@ -38,13 +46,28 @@ var default_camera_y: float = 0.0
 func _ready() -> void:
 	default_camera_y = camera.position.y
 	capture_mouse()
+	
+	# Detect and initialize equipped weapon
+	if weapon_mount and weapon_mount.get_child_count() > 0:
+		var initial_weapon: WeaponBase = weapon_mount.get_child(0) as WeaponBase
+		if initial_weapon:
+			equip_weapon(initial_weapon)
+
+func equip_weapon(weapon: WeaponBase) -> void:
+	current_weapon = weapon
+	if current_weapon:
+		if not current_weapon.ammo_changed.is_connected(_on_ammo_changed):
+			current_weapon.ammo_changed.connect(_on_ammo_changed)
+		if not current_weapon.reload_started.is_connected(_on_reload_started):
+			current_weapon.reload_started.connect(_on_reload_started)
+		if not current_weapon.reload_finished.is_connected(_on_reload_finished):
+			current_weapon.reload_finished.connect(_on_reload_finished)
+		_on_ammo_changed(current_weapon.current_ammo, current_weapon.reserve_ammo)
 
 func _unhandled_input(event: InputEvent) -> void:
 	# Mouse look
 	if mouse_captured and event is InputEventMouseMotion:
-		# Rotate body horizontally (yaw)
 		rotate_y(-event.relative.x * mouse_sensitivity_h)
-		# Rotate head vertically (pitch)
 		head.rotate_x(-event.relative.y * mouse_sensitivity_v)
 		head.rotation.x = clampf(
 			head.rotation.x,
@@ -57,9 +80,22 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if not mouse_captured:
 			capture_mouse()
+			return
+		elif current_weapon:
+			current_weapon.fire()
+			return
+
 	# Mouse release on Escape / ui_cancel
-	elif event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and event.physical_keycode == KEY_ESCAPE):
+	if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and event.physical_keycode == KEY_ESCAPE):
 		release_mouse()
+		return
+
+	# Weapon controls (only when mouse is captured)
+	if mouse_captured and current_weapon:
+		if event.is_action_pressed("fire"):
+			current_weapon.fire()
+		elif event.is_action_pressed("reload") or (event is InputEventKey and event.pressed and event.physical_keycode == KEY_R):
+			current_weapon.reload()
 
 func _physics_process(delta: float) -> void:
 	# Gravity & terminal velocity
@@ -119,18 +155,36 @@ func release_mouse() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	mouse_captured = false
 
-# Input helpers with both Action and Physical Key fallbacks
+# UI / Weapon Callbacks
+func _on_ammo_changed(current: int, reserve: int) -> void:
+	if ammo_label:
+		ammo_label.text = "%02d / %02d" % [current, reserve]
+	if status_label and not (current_weapon and current_weapon.is_reloading):
+		if current == 0:
+			status_label.text = "PRESS [R] TO RELOAD"
+			status_label.modulate = Color(1.0, 0.35, 0.35)
+		else:
+			status_label.text = ""
+
+func _on_reload_started(_duration: float) -> void:
+	if status_label:
+		status_label.text = "RELOADING..."
+		status_label.modulate = Color(1.0, 0.85, 0.2)
+
+func _on_reload_finished() -> void:
+	if status_label:
+		status_label.text = ""
+
+# Input helpers
 func _get_input_vector() -> Vector2:
 	var x: float = 0.0
 	var y: float = 0.0
 
-	# Left / Right
 	if Input.is_action_pressed("move_right") or Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT):
 		x += 1.0
 	if Input.is_action_pressed("move_left") or Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT):
 		x -= 1.0
 
-	# Forward / Back (negative y is forward in 3D)
 	if Input.is_action_pressed("move_forward") or Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP):
 		y -= 1.0
 	if Input.is_action_pressed("move_backward") or Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN):
