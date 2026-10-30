@@ -1,7 +1,13 @@
 class_name Player
 extends CharacterBody3D
 
+signal health_changed(current: float, max_val: float)
+signal player_died()
+
 ## Configuration
+@export_group("Stats")
+@export var max_health: float = 100.0
+
 @export_group("Movement Speeds")
 @export var walk_speed: float = 5.0
 @export var sprint_speed: float = 8.0
@@ -33,19 +39,26 @@ extends CharacterBody3D
 # HUD references
 @onready var ammo_label: Label = $CrosshairUI/AmmoContainer/AmmoLabel
 @onready var status_label: Label = $CrosshairUI/AmmoContainer/StatusLabel
+@onready var health_label: Label = $CrosshairUI/HealthContainer/HealthLabel
+@onready var damage_overlay: ColorRect = $CrosshairUI/DamageOverlay
 
-# Weapon state
+# State
+var current_health: float = 100.0
+var is_alive: bool = true
 var current_weapon: WeaponBase = null
 
-# Internal state
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9.8)
 var mouse_captured: bool = false
 var bob_phase: float = 0.0
 var default_camera_y: float = 0.0
 
 func _ready() -> void:
+	add_to_group("player")
+	current_health = max_health
 	default_camera_y = camera.position.y
 	capture_mouse()
+	
+	_update_health_ui()
 	
 	# Detect and initialize equipped weapon
 	if weapon_mount and weapon_mount.get_child_count() > 0:
@@ -65,6 +78,9 @@ func equip_weapon(weapon: WeaponBase) -> void:
 		_on_ammo_changed(current_weapon.current_ammo, current_weapon.reserve_ammo)
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not is_alive:
+		return
+
 	# Mouse look
 	if mouse_captured and event is InputEventMouseMotion:
 		rotate_y(-event.relative.x * mouse_sensitivity_h)
@@ -98,6 +114,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			current_weapon.reload()
 
 func _physics_process(delta: float) -> void:
+	if not is_alive:
+		return
+
 	# Gravity & terminal velocity
 	if not is_on_floor():
 		velocity.y -= gravity * delta
@@ -146,6 +165,37 @@ func _process_camera_effects(delta: float, is_sprinting: bool) -> void:
 			bob_phase = 0.0
 			camera.position.y = lerpf(camera.position.y, default_camera_y, 10.0 * delta)
 			camera.position.x = lerpf(camera.position.x, 0.0, 10.0 * delta)
+
+func take_damage(amount: float) -> void:
+	if not is_alive:
+		return
+
+	current_health = maxf(0.0, current_health - amount)
+	print("[PLAYER DAMAGED] Took %s damage! HP: %s/%s" % [amount, current_health, max_health])
+	emit_signal("health_changed", current_health, max_health)
+	_update_health_ui()
+
+	# Red screen flash indicator
+	if damage_overlay:
+		damage_overlay.modulate = Color(1.0, 1.0, 1.0, 0.45)
+		var tween: Tween = create_tween()
+		tween.tween_property(damage_overlay, "modulate:a", 0.0, 0.25)
+
+	if current_health <= 0.0:
+		_die()
+
+func _update_health_ui() -> void:
+	if health_label:
+		health_label.text = "+ %d HP" % int(current_health)
+		if current_health <= 25.0:
+			health_label.modulate = Color(1.0, 0.25, 0.25)
+		else:
+			health_label.modulate = Color(0.95, 0.95, 0.95)
+
+func _die() -> void:
+	is_alive = false
+	print("[PLAYER K.I.A.] Player eliminated.")
+	emit_signal("player_died")
 
 func capture_mouse() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
