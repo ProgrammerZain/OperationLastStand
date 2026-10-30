@@ -204,8 +204,11 @@ func _perform_attack() -> void:
 		var result: Dictionary = space_state.intersect_ray(query)
 		if result and not result.is_empty():
 			var collider = result.get("collider")
-			if collider and collider.has_method("take_damage"):
-				collider.take_damage(attack_damage)
+			if collider:
+				if collider.has_method("take_damage"):
+					collider.take_damage(attack_damage)
+				elif collider.get_parent() and collider.get_parent().has_method("take_damage"):
+					collider.get_parent().take_damage(attack_damage)
 
 # ================= HELPER & COMBAT METHODS =================
 func _move_along_nav_path(speed: float) -> void:

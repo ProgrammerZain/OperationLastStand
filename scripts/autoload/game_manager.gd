@@ -108,4 +108,3 @@ func trigger_game_over() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	print("[GAME MANAGER] GAME OVER — PLAYER DEFEATED!")
 	game_over_triggered.emit()
-
